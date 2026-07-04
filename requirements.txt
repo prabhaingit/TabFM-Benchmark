@@ -5,6 +5,7 @@ lightgbm
 catboost
 scikit-learn
 torch
+tabpfn-client
 
 # TabFM (Google's Tabular Foundation Model)
 # Requires Python >= 3.11
@@ -36,4 +37,5 @@ mlflow          # local tracking, no account needed
 pyyaml
 tqdm
 joblib
-psutil           # for memory profiling
+psutil
+optuna           # for memory profiling
