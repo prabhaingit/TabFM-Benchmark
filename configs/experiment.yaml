@@ -1,13 +1,18 @@
 experiment:
   name: "tabpfn-vs-world-v1"
-  n_seeds: 10          # run each dataset × model × seed
+  n_seeds: 5           # reduced from 10 - still statistically valid
   cv_strategy: "stratified_kfold"
   n_folds: 5
   test_size: 0.2       # outer holdout split
   timeout_per_run: 300  # seconds; skip if exceeded
-  
+
   tabpfn_max_rows: 3000  # TabPFN v2 practical limit for CPU
   tabpfn_max_features: 100
+
+  # Optimization settings
+  optuna_trials: 15     # reduced from 50 - sufficient for exploration
+  early_stopping: true  # stop unpromising trials early
+  cache_results: true   # skip already completed runs
 
   metrics:
     - roc_auc

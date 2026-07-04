@@ -20,9 +20,45 @@ This project investigates the practical trade-offs between **zero-shot tabular f
 
 ### Key Metrics Tracked
 
-- **Performance**: ROC AUC, Average Precision, F1 Macro, Brier Score, Log Loss
-- **Timing**: Tuning time, Fit time, Predict time, Total wall time
-- **Statistical**: Wilcoxon signed-rank tests for pairwise significance
+#### Performance Metrics
+- **ROC AUC**: Area under the ROC curve
+- **Average Precision (PR-AUC)**: Area under the precision-recall curve
+- **F1 Macro**: Harmonic mean of precision and recall (averaged across classes)
+- **Brier Score**: Mean squared error of probability predictions
+- **Log Loss**: Negative log-likelihood of predictions
+
+#### Calibration Metrics (NEW in Phase 1)
+- **ECE (Expected Calibration Error)**: Measures prediction confidence vs actual accuracy
+  - Computed with 10-bin and 15-bin discretizations
+- **MCE (Maximum Calibration Error)**: Worst-case calibration error across bins
+
+#### Per-Class Metrics (NEW in Phase 1)
+- **Precision/Recall per class**: Class 0 and Class 1 separately
+- **F1 per class**: Class 0 and Class 1 separately
+- **Sensitivity (TPR)**: True positive rate for positive class
+- **Specificity (TNR)**: True negative rate for negative class
+- **PPV (Positive Predictive Value)**: Precision for positive class
+
+#### Fairness & Quality Metrics (NEW in Phase 1)
+- **Balanced Accuracy**: Accuracy accounting for class imbalance
+- **Matthews Correlation Coefficient (MCC)**: Correlation between predicted and actual labels
+- **Demographic Parity**: Overall positive prediction rate
+- **TPR/FPR Overall**: True/false positive rates
+
+#### Timing & Resource Metrics
+- **Tuning Time**: Hyperparameter optimization time
+- **Fit Time**: Model training time
+- **Predict Time**: Inference time
+- **Total Wall Time**: End-to-end execution time
+- **Peak Memory (MB)**: Maximum memory usage during execution
+- **GPU Memory (MB)**: GPU memory allocated (if CUDA available)
+
+#### Statistical Testing (Enhanced in Phase 1)
+- **Wilcoxon signed-rank tests**: Pairwise significance testing
+- **Friedman test**: Overall model comparison across datasets
+- **Nemenyi post-hoc test**: Pairwise comparisons after Friedman
+- **Bootstrap Confidence Intervals**: 95% CI for each metric
+- **Critical Difference (CD) Diagrams**: Visual statistical significance
 
 ## 📁 Project Structure
 
@@ -41,10 +77,18 @@ tabfm-benchmark/
 │   │   ├── catboost_model.py
 │   │   └── mlp_model.py
 │   ├── evaluation/       # Metrics & statistical tests
+│   │   ├── metrics.py    # Performance, calibration, fairness metrics
+│   │   ├── statistical.py # Friedman, Nemenyi, bootstrap CI
+│   │   └── profiling.py  # Memory & timing profiling
 │   └── viz/             # Visualizations
+│       ├── leaderboard.py # Heatmaps & ranking plots
+│       ├── statistical.py # CD diagrams, confidence intervals
+│       └── curves.py     # ROC/PR curves
 ├── experiments/
 │   ├── run_benchmark.py # Main benchmark runner
 │   └── results/         # Raw & aggregated results
+├── reports/
+│   └── figures/         # Generated visualizations
 └── requirements.txt     # Dependencies
 ```
 
@@ -85,7 +129,14 @@ python experiments/run_benchmark.py --dataset credit-g --n_seeds 3
 Results are saved to:
 - `experiments/results/raw/` — Individual JSON results per dataset
 - `experiments/results/aggregated/` — Aggregated CSV with all metrics
-- `reports/figures/` — Visualizations (heatmaps, rank plots, timing comparisons)
+- `reports/figures/` — Visualizations including:
+  - `auc_heatmap.png` — ROC AUC comparison across models/datasets
+  - `average_ranks.png` — Model ranking visualization
+  - `calibration_comparison.png` — ECE/MCE comparison plots
+  - `confidence_intervals.png` — Bootstrap 95% CI plots
+  - `memory_comparison.png` — Memory usage comparison
+  - `timing_comparison.png` — Runtime comparison charts
+  - `win_loss_matrix.png` — Pairwise win/loss/tie matrix
 
 ## 📈 Sample Results
 
@@ -122,6 +173,26 @@ Results are saved to:
 | MLP | 0.7035 | 0.8278 | 1.0000 |
 
 > **Key Insight**: TabPFN achieves **comparable performance** to XGBoost (0.8679 vs 0.8682 ROC AUC) with **16.6× less time**. The main advantage is **zero hyperparameter tuning** — making it attractive for rapid prototyping and exploration.
+
+## 📋 Phase 1 Implementation Summary
+
+The Phase 1 enhancements add comprehensive evaluation capabilities:
+
+### ✅ Completed in Phase 1
+
+| Category | Feature | Description |
+|----------|---------|-------------|
+| **Calibration** | ECE/MCE | Expected and Maximum Calibration Error with 10 & 15 bins |
+| **Curves** | ROC/PR Analysis | Optimal threshold (Youden's J), per-curve AUC |
+| **Per-Class** | Precision/Recall/F1 | Class-specific metrics for binary classification |
+| **Fairness** | Demographic Parity | TPR/FPR disparities, balanced accuracy, MCC |
+| **Statistical** | Friedman Test | Non-parametric overall model comparison |
+| **Statistical** | Nemenyi Post-hoc | Pairwise significance with Critical Difference |
+| **Statistical** | Bootstrap CI | 95% confidence intervals via resampling |
+| **Profiling** | Memory Tracking | Peak memory, delta, and GPU memory usage |
+| **Visualization** | CD Diagrams | Critical Difference visualization |
+
+---
 
 ## 🧪 Datasets
 
@@ -167,6 +238,18 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 - Improve visualizations
 - Add confidence intervals to results
 - Support regression tasks
+
+## 📖 Detailed Metrics Documentation
+
+For comprehensive documentation of all metrics implemented in Phase 1, including:
+- What each metric means (intuitive definitions)
+- How results are aggregated across multiple seeds/datasets
+- What each visualization shows and how to interpret it
+- Statistical test explanations with formulas
+- Quick analysis workflow examples
+- TabPFN vs GBDT interpretation guide
+
+See **[METRICS_DOCUMENTATION.md](METRICS_DOCUMENTATION.md)** — The all-in-one guide for understanding benchmark results.
 
 ## 📝 License
 

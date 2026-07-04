@@ -51,7 +51,7 @@ class XGBoostWrapper(ModelWrapper):
             cv = StratifiedKFold(n_splits=self.n_cv_folds, shuffle=True,
                                  random_state=self.random_state)
             scores = cross_val_score(clf, X_train, y_train,
-                                     cv=cv, scoring="roc_auc", n_jobs=1)
+                                     cv=cv, scoring="roc_auc", n_jobs=-1)
             return scores.mean()
         
         t_tune_start = time.perf_counter()
@@ -60,7 +60,7 @@ class XGBoostWrapper(ModelWrapper):
             direction="maximize",
             sampler=optuna.samplers.TPESampler(seed=self.random_state),
         )
-        study.optimize(objective, n_trials=self.n_trials, timeout=self.timeout)
+        study.optimize(objective, n_trials=self.n_trials, timeout=self.timeout, n_jobs=-1)
         self.tuning_time_sec_ = time.perf_counter() - t_tune_start
 
         self.best_params_ = study.best_params

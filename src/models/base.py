@@ -9,6 +9,14 @@ from dataclasses import dataclass, field
 from typing import Optional
 import numpy as np
 import time
+import os
+import psutil
+
+
+def get_memory_usage_mb() -> float:
+    """Get current process memory usage in MB."""
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss / 1024 / 1024
 
 
 @dataclass
@@ -17,20 +25,27 @@ class RunResult:
     model_name: str
     dataset_name: str
     seed: int
-    
+
     # Core predictions
     y_test: np.ndarray
     y_proba: np.ndarray          # predicted probabilities for positive class
     y_pred: np.ndarray           # hard predictions at 0.5 threshold
-    
+
     # Timing
     fit_time_sec: float
     predict_time_sec: float
-    
-    # Metadata
+
+    # Metadata (required)
     n_train: int
     n_test: int
     n_features: int
+
+    # Memory profiling (optional with defaults)
+    peak_memory_mb: float = 0.0
+    memory_delta_mb: float = 0.0
+    gpu_memory_mb: Optional[float] = None
+
+    # Timing metadata (optional with defaults)
     tuning_time_sec: float = 0.0      # 0 for TabPFN, >0 for all tuned models
     total_wall_time_sec: float = 0.0  # tuning + fit + predict
     throughput_rows_per_sec: float = 0.0  # n_test / predict_time_sec
@@ -77,12 +92,28 @@ class ModelWrapper(ABC):
         """
         n_train, n_features = X_train.shape
         n_test = X_test.shape[0]
-        
+
+        # Track memory before execution
+        start_memory_mb = get_memory_usage_mb()
+
         try:
             # Timed fit
             t0 = time.perf_counter()
             self.fit(X_train, y_train)
             fit_time = time.perf_counter() - t0
+
+            # Memory after fit
+            peak_memory_mb = get_memory_usage_mb()
+            memory_delta_mb = peak_memory_mb - start_memory_mb
+
+            # Try to get GPU memory if available
+            gpu_memory_mb = None
+            try:
+                import torch
+                if torch.cuda.is_available():
+                    gpu_memory_mb = torch.cuda.memory_allocated() / 1024 / 1024
+            except ImportError:
+                pass
 
             # Timed predict
             t0 = time.perf_counter()
@@ -102,12 +133,15 @@ class ModelWrapper(ABC):
                 y_pred=y_pred,
                 fit_time_sec=fit_time,
                 predict_time_sec=predict_time,
-                tuning_time_sec=tuning_time,             
-                total_wall_time_sec=total_wall,          
+                tuning_time_sec=tuning_time,
+                total_wall_time_sec=total_wall,
                 throughput_rows_per_sec=n_test / (predict_time + 1e-9),
                 n_train=n_train,
                 n_test=n_test,
                 n_features=n_features,
+                peak_memory_mb=peak_memory_mb,
+                memory_delta_mb=memory_delta_mb,
+                gpu_memory_mb=gpu_memory_mb,
             )
 
         except Exception as e:
@@ -124,5 +158,6 @@ class ModelWrapper(ABC):
                 n_train=n_train,
                 n_test=n_test,
                 n_features=n_features,
+                peak_memory_mb=start_memory_mb,
                 error=str(e),
             )

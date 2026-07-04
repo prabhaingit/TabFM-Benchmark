@@ -51,7 +51,7 @@ class MLPWrapper(ModelWrapper):
             cv = StratifiedKFold(n_splits=self.n_cv_folds, shuffle=True,
                                  random_state=self.random_state)
             scores = cross_val_score(pipe, X_train, y_train,
-                                     cv=cv, scoring="roc_auc", n_jobs=1)
+                                     cv=cv, scoring="roc_auc", n_jobs=-1)
             return scores.mean()
         
         t_tune_start = time.perf_counter()

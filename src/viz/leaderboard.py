@@ -188,3 +188,61 @@ def plot_timing_comparison(
     plt.savefig(save_path, dpi=150, bbox_inches="tight", facecolor=DARK_BG)
     plt.close()
     print(f"  Saved timing chart → {save_path}")
+
+
+def plot_memory_comparison(
+    results_df: pd.DataFrame,
+    save_path: str = "reports/figures/memory_comparison.png",
+):
+    """
+    Bar chart comparing memory usage across models.
+    Shows peak memory and memory delta.
+    """
+    if "peak_memory_mb" not in results_df.columns:
+        print("  No memory data available, skipping memory visualization")
+        return
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5), facecolor=DARK_BG)
+
+    # Left: peak memory usage
+    ax = axes[0]
+    ax.set_facecolor(DARK_BG)
+    memory = results_df.groupby("model")["peak_memory_mb"].mean().sort_values(ascending=True)
+    colors = [MODEL_COLORS.get(m, MUTED) for m in memory.index]
+    bars = ax.barh(memory.index, memory.values, color=colors, alpha=0.85)
+
+    for bar, val in zip(bars, memory.values):
+        ax.text(val + 5, bar.get_y() + bar.get_height() / 2,
+                f"{val:.0f} MB", va="center", color=TEXT_COLOR, fontsize=10)
+
+    ax.set_xlabel("Peak Memory Usage (MB)", color=MUTED, fontsize=11)
+    ax.set_title("Peak Memory Usage", color=TEXT_COLOR, fontsize=12, fontweight="600")
+    ax.tick_params(colors=MUTED)
+    ax.spines[:].set_color(MUTED)
+
+    # Right: memory delta (memory increase during execution)
+    ax2 = axes[1]
+    ax2.set_facecolor(DARK_BG)
+    if "memory_delta_mb" in results_df.columns:
+        memory_delta = results_df.groupby("model")["memory_delta_mb"].mean().sort_values(ascending=True)
+        colors_d = [MODEL_COLORS.get(m, MUTED) for m in memory_delta.index]
+        bars2 = ax2.barh(memory_delta.index, memory_delta.values, color=colors_d, alpha=0.85)
+
+        for bar, val in zip(bars2, memory_delta.values):
+            ax2.text(val + 2, bar.get_y() + bar.get_height() / 2,
+                    f"{val:.0f} MB", va="center", color=TEXT_COLOR, fontsize=10)
+
+        ax2.set_xlabel("Memory Delta (MB)", color=MUTED, fontsize=11)
+        ax2.set_title("Memory Increase During Execution", color=TEXT_COLOR, fontsize=12, fontweight="600")
+    else:
+        ax2.set_facecolor(DARK_BG)
+        ax2.text(0.5, 0.5, "Memory delta not tracked", transform=ax2.transAxes,
+                 ha="center", va="center", color=MUTED, fontsize=12)
+
+    ax2.tick_params(colors=MUTED)
+    ax2.spines[:].set_color(MUTED)
+
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=150, bbox_inches="tight", facecolor=DARK_BG)
+    plt.close()
+    print(f"  Saved memory chart → {save_path}")

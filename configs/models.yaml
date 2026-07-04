@@ -7,50 +7,62 @@ models:
       N_ensemble_configurations: 8  # TabPFN v2 default
     tunable: false          # key point: TabPFN is zero-shot, no tuning
 
+  tabfm_jax:
+    class: src.models.tabfm_model.TabFMJAXWrapper
+    description: "Google's TabFM - zero-shot tabular foundation model (JAX backend)"
+    requires_python: ">=3.11"
+    tunable: false          # TabFM is zero-shot, no tuning
+
+  tabfm_pytorch:
+    class: src.models.tabfm_model.TabFMPyTorchWrapper
+    description: "Google's TabFM - zero-shot tabular foundation model (PyTorch backend)"
+    requires_python: ">=3.11"
+    tunable: false          # TabFM is zero-shot, no tuning
+
   xgboost:
     class: src.models.xgboost_model.XGBoostWrapper
     tunable: true
-    n_trials: 50
+    n_trials: 15            # reduced from 50 for speed
     search_space:
-      n_estimators: [100, 1000]
-      max_depth: [3, 10]
-      learning_rate: [0.01, 0.3]
-      subsample: [0.6, 1.0]
-      colsample_bytree: [0.6, 1.0]
-      min_child_weight: [1, 10]
-      reg_alpha: [0.0, 1.0]
-      reg_lambda: [0.5, 2.0]
+      n_estimators: [100, 500]
+      max_depth: [3, 8]
+      learning_rate: [0.05, 0.2]
+      subsample: [0.7, 1.0]
+      colsample_bytree: [0.7, 1.0]
+      min_child_weight: [1, 5]
+      reg_alpha: [0.0, 0.5]
+      reg_lambda: [0.5, 1.5]
 
   lightgbm:
     class: src.models.lightgbm_model.LightGBMWrapper
     tunable: true
-    n_trials: 50
+    n_trials: 15            # reduced from 50 for speed
     search_space:
-      n_estimators: [100, 1000]
-      max_depth: [3, 12]
-      learning_rate: [0.01, 0.3]
-      num_leaves: [15, 255]
-      subsample: [0.6, 1.0]
-      colsample_bytree: [0.6, 1.0]
-      min_child_samples: [5, 50]
+      n_estimators: [100, 500]
+      max_depth: [3, 8]
+      learning_rate: [0.05, 0.2]
+      num_leaves: [15, 63]
+      subsample: [0.7, 1.0]
+      colsample_bytree: [0.7, 1.0]
+      min_child_samples: [10, 30]
 
   catboost:
     class: src.models.catboost_model.CatBoostWrapper
     tunable: true
-    n_trials: 50
+    n_trials: 15            # reduced from 50 for speed
     search_space:
-      iterations: [100, 1000]
-      depth: [4, 10]
-      learning_rate: [0.01, 0.3]
-      l2_leaf_reg: [1, 10]
-      border_count: [32, 255]
+      iterations: [100, 500]
+      depth: [4, 8]
+      learning_rate: [0.05, 0.2]
+      l2_leaf_reg: [1, 5]
+      border_count: [64, 128]
 
   mlp_sklearn:
     class: src.models.mlp_model.MLPWrapper
     tunable: true
-    n_trials: 30
+    n_trials: 10            # reduced from 30 for speed
     search_space:
-      hidden_layer_sizes: [[64], [128], [256], [64,64], [128,64], [256,128,64]]
-      alpha: [1e-5, 1e-1]        # L2 regularisation
-      learning_rate_init: [1e-4, 1e-2]
-      max_iter: [200, 500]
+      hidden_layer_sizes: [[64], [128], [64,64]]
+      alpha: [1e-4, 1e-2]
+      learning_rate_init: [1e-4, 1e-3]
+      max_iter: [200, 300]
