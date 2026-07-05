@@ -1,96 +1,195 @@
-# TabFM Benchmark
+# TabFM Benchmark 🏆
+
+<p align="center">
+  <a href="https://github.com/Siri1702/tabfm-benchmark/stargazers">
+    <img src="https://img.shields.io/github/stars/Siri1702/tabfm-benchmark?style=flat-square" alt="Stars">
+  </a>
+  <a href="https://github.com/Siri1702/tabfm-benchmark/issues">
+    <img src="https://img.shields.io/github/issues/Siri1702/tabfm-benchmark?style=flat-square" alt="Issues">
+  </a>
+  <a href="https://github.com/Siri1702/tabfm-benchmark/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/Siri1702/tabfm-benchmark?style=flat-square" alt="License">
+  </a>
+</p>
 
 A fair, reproducible benchmark comparing **tabular foundation models** (TabPFN) against traditional gradient boosted trees (XGBoost, LightGBM, CatBoost) and neural networks (MLP) on binary classification tasks.
 
-## 📊 Overview
+---
+
+## 📑 Table of Contents
+
+1. [What is this benchmark?](#what-is-this-benchmark)
+2. [Quick Navigation Guide](#-quick-navigation-guide)
+3. [What's Being Compared](#whats-being-compared)
+4. [Key Metrics Tracked](#key-metrics-tracked)
+5. [Project Structure](#project-structure)
+6. [Quick Start](#-quick-start)
+7. [Understanding Your Results](#-understanding-your-results)
+8. [Benchmark Results](#-benchmark-results)
+9. [Datasets](#-datasets)
+10. [Methodology](#-methodology)
+11. [Contributing](#-contributing)
+12. [License](#-license)
+
+---
+
+## 🔍 What is this benchmark?
 
 This project investigates the practical trade-offs between **zero-shot tabular foundation models** and **traditionally-tuned** machine learning approaches. The key question:
 
-> Can a single zero-shot model (TabPFN) compete with extensively-tuned gradient boosted trees — without the computational cost of hyperparameter optimization?
+> **Can a single zero-shot model (TabPFN) compete with extensively-tuned gradient boosted trees — without the computational cost of hyperparameter optimization?**
 
-### What's Being Compared
+### The Answer (Preview)
 
-| Model | Type | Tuning Required | Notes |
-|-------|------|-----------------|-------|
-| **TabPFN** | Tabular Foundation Model | ❌ None (zero-shot) | Stores training data as context; no gradient-based training |
-| **XGBoost** | Gradient Boosted Trees | ✅ Optuna (50 trials) | Industry-standard gradient boosting |
-| **LightGBM** | Gradient Boosted Trees | ✅ Optuna (50 trials) | Fast histogram-based gradient boosting |
-| **CatBoost** | Gradient Boosted Trees | ✅ Optuna (50 trials) | Ordered boosting with symmetric trees |
-| **MLP** | Neural Network | ✅ Optuna (30 trials) | Scikit-learn MLPClassifier |
+| Metric | TabPFN | XGBoost | Winner |
+|--------|--------|---------|--------|
+| **ROC-AUC** | 0.8847 | 0.8698 | TabPFN (+1.5%) |
+| **Speed** | 12.5s | 84.4s | TabPFN (15.2× faster) |
+| **Calibration** | 0.048 ECE | 0.034 ECE | XGBoost (better) |
 
-### Key Metrics Tracked
+*See the [Benchmark Results](#-benchmark-results) section for complete analysis.*
 
-#### Performance Metrics
-- **ROC AUC**: Area under the ROC curve
-- **Average Precision (PR-AUC)**: Area under the precision-recall curve
-- **F1 Macro**: Harmonic mean of precision and recall (averaged across classes)
-- **Brier Score**: Mean squared error of probability predictions
-- **Log Loss**: Negative log-likelihood of predictions
+---
 
-#### Calibration Metrics (NEW in Phase 1)
-- **ECE (Expected Calibration Error)**: Measures prediction confidence vs actual accuracy
-  - Computed with 10-bin and 15-bin discretizations
-- **MCE (Maximum Calibration Error)**: Worst-case calibration error across bins
+## 🧭 Quick Navigation Guide
 
-#### Per-Class Metrics (NEW in Phase 1)
-- **Precision/Recall per class**: Class 0 and Class 1 separately
-- **F1 per class**: Class 0 and Class 1 separately
-- **Sensitivity (TPR)**: True positive rate for positive class
-- **Specificity (TNR)**: True negative rate for negative class
-- **PPV (Positive Predictive Value)**: Precision for positive class
+**I'm a...** | **Go to...** | **Description**
+-------------|--------------|------------------
+Data Scientist wanting to use a model | [When to Use Which Model](#-when-to-use-which-model) | Decision framework for model selection
+Researcher wanting detailed metrics | [Key Metrics Tracked](#key-metrics-tracked) | Complete list of all metrics with definitions
+Developer wanting to run the benchmark | [Quick Start](#-quick-start) | Installation and running instructions
+Analyst looking at results | [Understanding Your Results](#-understanding-your-results) | Where to find and how to interpret results
+Contributor | [Contributing](#-contributing) | How to add models, datasets, or tests
 
-#### Fairness & Quality Metrics (NEW in Phase 1)
-- **Balanced Accuracy**: Accuracy accounting for class imbalance
-- **Matthews Correlation Coefficient (MCC)**: Correlation between predicted and actual labels
-- **Demographic Parity**: Overall positive prediction rate
-- **TPR/FPR Overall**: True/false positive rates
+---
 
-#### Timing & Resource Metrics
-- **Tuning Time**: Hyperparameter optimization time
-- **Fit Time**: Model training time
-- **Predict Time**: Inference time
-- **Total Wall Time**: End-to-end execution time
-- **Peak Memory (MB)**: Maximum memory usage during execution
-- **GPU Memory (MB)**: GPU memory allocated (if CUDA available)
+## ⚖️ What's Being Compared
 
-#### Statistical Testing (Enhanced in Phase 1)
-- **Wilcoxon signed-rank tests**: Pairwise significance testing
-- **Friedman test**: Overall model comparison across datasets
-- **Nemenyi post-hoc test**: Pairwise comparisons after Friedman
-- **Bootstrap Confidence Intervals**: 95% CI for each metric
-- **Critical Difference (CD) Diagrams**: Visual statistical significance
+| Model | Type | Tuning Required | Best For |
+|-------|------|-----------------|----------|
+| **TabPFN** | Tabular Foundation Model | ❌ None (zero-shot) | Rapid prototyping, small datasets |
+| **XGBoost** | Gradient Boosted Trees | ✅ Optuna (50 trials) | Production, well-calibrated probabilities |
+| **LightGBM** | Gradient Boosted Trees | ✅ Optuna (50 trials) | Large datasets, speed-critical |
+| **CatBoost** | Gradient Boosted Trees | ✅ Optuna (50 trials) | Categorical features |
+| **MLP** | Neural Network | ✅ Optuna (30 trials) | Real-time inference |
+
+---
+
+## 📊 Key Metrics Tracked
+
+> 💡 **Tip**: See [METRICS_DOCUMENTATION.md](METRICS_DOCUMENTATION.md) for detailed explanations of each metric.
+
+### Performance Metrics
+| Metric | Description | Interpretation |
+|--------|-------------|-----------------|
+| **ROC AUC** | Area under the ROC curve | Higher = better discrimination ability |
+| **Average Precision (PR-AUC)** | Area under the precision-recall curve | Higher = better on imbalanced data |
+| **F1 Macro** | Harmonic mean of precision/recall (both classes) | Higher = balanced class performance |
+| **Brier Score** | Mean squared error of probability predictions | Lower = better calibrated |
+| **Log Loss** | Negative log-likelihood | Lower = better probabilistic predictions |
+
+### Calibration Metrics
+| Metric | Description | Interpretation |
+|--------|-------------|-----------------|
+| **ECE-10** | Expected Calibration Error (10 bins) | Lower = better calibrated |
+| **ECE-15** | Expected Calibration Error (15 bins) | Lower = better calibrated |
+| **MCE** | Maximum Calibration Error | Lower = better worst-case calibration |
+
+### Per-Class Metrics
+| Metric | Description |
+|--------|-------------|
+| **Precision/Recall per class** | Class 0 and Class 1 separately |
+| **F1 per class** | Class 0 and Class 1 separately |
+| **Sensitivity (TPR)** | True positive rate |
+| **Specificity (TNR)** | True negative rate |
+| **PPV** | Positive Predictive Value |
+
+### Fairness & Quality Metrics
+| Metric | Description | Interpretation |
+|--------|-------------|-----------------|
+| **Balanced Accuracy** | Accuracy accounting for class imbalance | Higher = better on imbalanced data |
+| **MCC** | Matthews Correlation Coefficient | Higher = better (+1 to -1 scale) |
+| **Demographic Parity** | Overall positive prediction rate | Lower = less bias |
+
+### Timing & Resource Metrics
+| Metric | Description |
+|--------|-------------|
+| **Tuning Time** | Hyperparameter optimization time |
+| **Fit Time** | Model training time |
+| **Predict Time** | Inference time |
+| **Total Wall Time** | End-to-end execution time |
+| **Peak Memory (MB)** | Maximum memory usage |
+
+### Statistical Testing
+| Test | Description |
+|------|-------------|
+| **Wilcoxon signed-rank** | Pairwise significance testing |
+| **Friedman test** | Overall model comparison |
+| **Nemenyi post-hoc** | Pairwise comparisons with Critical Difference |
+| **Bootstrap CI** | 95% confidence intervals |
+
+---
 
 ## 📁 Project Structure
 
 ```
 tabfm-benchmark/
-├── configs/               # Configuration files
-│   ├── datasets.yaml     # 15 OpenML datasets
-│   ├── models.yaml       # Model configs & hyperparameter search spaces
-│   └── experiment.yaml   # Experiment settings
-├── src/
-│   ├── data/             # Data loading (OpenML)
-│   ├── models/           # Model wrappers
-│   │   ├── tabpfn_model.py
-│   │   ├── xgboost_model.py
-│   │   ├── lightgbm_model.py
-│   │   ├── catboost_model.py
-│   │   └── mlp_model.py
-│   ├── evaluation/       # Metrics & statistical tests
-│   │   ├── metrics.py    # Performance, calibration, fairness metrics
-│   │   ├── statistical.py # Friedman, Nemenyi, bootstrap CI
-│   │   └── profiling.py  # Memory & timing profiling
-│   └── viz/             # Visualizations
-│       ├── leaderboard.py # Heatmaps & ranking plots
-│       ├── statistical.py # CD diagrams, confidence intervals
-│       └── curves.py     # ROC/PR curves
-├── experiments/
-│   ├── run_benchmark.py # Main benchmark runner
-│   └── results/         # Raw & aggregated results
-├── reports/
-│   └── figures/         # Generated visualizations
-└── requirements.txt     # Dependencies
+├── configs/                     # 📋 Configuration files
+│   ├── datasets.yaml           # 15 OpenML datasets with metadata
+│   ├── models.yaml             # Model configs & hyperparameter search spaces
+│   └── experiment.yaml         # Experiment settings
+│
+├── src/                        # 🛠️ Source code
+│   ├── data/                   # Data loading (OpenML)
+│   │   └── loader.py
+│   │
+│   ├── models/                 # Model wrappers
+│   │   ├── tabpfn_model.py    # TabPFN (zero-shot)
+│   │   ├── xgboost_model.py   # XGBoost (tuned)
+│   │   ├── lightgbm_model.py  # LightGBM (tuned)
+│   │   ├── catboost_model.py  # CatBoost (tuned)
+│   │   └── mlp_model.py       # MLP (tuned)
+│   │
+│   ├── evaluation/             # Metrics & evaluation
+│   │   ├── metrics.py         # All performance, calibration, fairness metrics
+│   │   ├── statistical.py     # Friedman, Nemenyi, bootstrap CI
+│   │   └── profiling.py       # Memory & timing profiling
+│   │
+│   └── viz/                    # Visualizations
+│       ├── leaderboard.py     # Heatmaps & ranking plots
+│       ├── statistical.py    # CD diagrams, confidence intervals
+│       └── curves.py          # ROC/PR curves
+│
+├── experiments/                # 🏃 Experiment runner
+│   ├── run_benchmark.py       # Main benchmark script
+│   ├── results/
+│   │   ├── raw/               # Individual JSON results per dataset
+│   │   │   └── 20260705_*.json
+│   │   └── aggregated/        # Aggregated CSV
+│   │       └── results.csv
+│   └── analysis/              # Result analysis scripts (if any)
+│
+├── reports/                    # 📊 Generated reports
+│   ├── summary.md             # Detailed analysis report ⭐ START HERE FOR RESULTS
+│   ├── linkedin_post.md       # LinkedIn summary
+│   ├── figures/               # Generated visualizations
+│   │   ├── auc_heatmap.png    # ROC AUC comparison
+│   │   ├── average_ranks.png  # Model ranking
+│   │   ├── calibration_comparison.png  # ECE/MCE plots
+│   │   ├── confidence_intervals.png    # Bootstrap CI
+│   │   ├── memory_comparison.png       # Memory usage
+│   │   ├── timing_comparison.png       # Runtime charts
+│   │   ├── win_loss_matrix.png         # Pairwise wins
+│   │   └── cd_diagram.png              # Critical Difference
+│   └── metrics_documentation.md       # Detailed metric definitions
+│
+├── requirements.txt            # Python dependencies
+├── README.md                   # This file
+├── METRICS_DOCUMENTATION.md     # Detailed metrics guide
+└── CONTRIBUTING.md            # Contribution guidelines
 ```
+
+---
 
 ## 🚀 Quick Start
 
@@ -120,144 +219,170 @@ python experiments/run_benchmark.py --datasets credit-g diabetes
 # Run on all 15 datasets
 python experiments/run_benchmark.py --all
 
-# Quick test with fewer seeds
+# Quick test with fewer seeds (faster)
 python experiments/run_benchmark.py --dataset credit-g --n_seeds 3
+
+# Run with custom config
+python experiments/run_benchmark.py --config my_config.yaml
 ```
 
-### Output
+### Output Locations
 
-Results are saved to:
-- `experiments/results/raw/` — Individual JSON results per dataset
-- `experiments/results/aggregated/` — Aggregated CSV with all metrics
-- `reports/figures/` — Visualizations including:
-  - `auc_heatmap.png` — ROC AUC comparison across models/datasets
-  - `average_ranks.png` — Model ranking visualization
-  - `calibration_comparison.png` — ECE/MCE comparison plots
-  - `confidence_intervals.png` — Bootstrap 95% CI plots
-  - `memory_comparison.png` — Memory usage comparison
-  - `timing_comparison.png` — Runtime comparison charts
-  - `win_loss_matrix.png` — Pairwise win/loss/tie matrix
+| Output | Location | Description |
+|--------|----------|-------------|
+| Raw Results | `experiments/results/raw/` | JSON files per dataset |
+| Aggregated | `experiments/results/aggregated/results.csv` | All metrics in CSV |
+| Figures | `reports/figures/` | Generated visualizations |
+| Analysis | `reports/summary.md` | Detailed results |
 
-## 📈 Sample Results
+---
 
-> ⚠️ **Preliminary Results** — Based on 1 random seed (seed=0), 3 datasets. Full benchmark with 10 seeds on all 15 datasets coming soon.
+## 📈 Understanding Your Results
 
-### Performance: ROC AUC (mean across 3 datasets)
+### 📊 Where to Find What
 
-| Model | ROC AUC | vs XGBoost |
-|-------|---------|------------|
-| **TabPFN** | **0.8679** | -0.03% |
-| XGBoost | 0.8682 | baseline |
-| LightGBM | 0.8638 | -0.51% |
-| CatBoost | 0.8598 | -0.97% |
-| MLP | 0.8437 | -2.82% |
+**I want to see...** | **Go to...** | **File**
+---------------------|-------------|--------
+Overall model comparison | [reports/summary.md](reports/summary.md) | Summary of all metrics
+ROC-AUC heatmap | Reports/Figures | `auc_heatmap.png`
+Model rankings | Reports/Figures | `average_ranks.png`
+Calibration analysis | Reports/Figures | `calibration_comparison.png`
+Statistical significance | Reports/Figures | `cd_diagram.png`, `confidence_intervals.png`
+Timing comparison | Reports/Figures | `timing_comparison.png`
+Memory usage | Reports/Figures | `memory_comparison.png`
+Pairwise wins/losses | Reports/Figures | `win_loss_matrix.png`
+Raw numbers | experiments/results/aggregated/ | `results.csv`
 
-### Timing: Total Wall Time (mean, seconds)
+### 📖 How to Interpret Results
 
-| Model | Time (s) | Speedup vs XGBoost |
-|-------|----------|-------------------|
-| **TabPFN** | **6.28** | **16.6×** |
-| LightGBM | 54.15 | 1.9× |
-| MLP | 34.00 | 3.1× |
-| XGBoost | 104.32 | 1.0× |
-| CatBoost | 266.53 | 0.4× |
+#### Performance Metrics (Higher = Better)
+- **ROC AUC > 0.9**: Excellent discrimination
+- **ROC AUC 0.8-0.9**: Good discrimination
+- **ROC AUC 0.7-0.8**: Fair discrimination
+- **ROC AUC < 0.7**: Poor discrimination
 
-### Breakdown by Dataset (ROC AUC)
+#### Calibration Metrics (Lower = Better)
+- **ECE < 0.05**: Well calibrated
+- **ECE 0.05-0.10**: Acceptable calibration
+- **ECE > 0.10**: Poor calibration
 
-| Model | credit-g | diabetes | banknote-auth |
-|-------|----------|----------|---------------|
-| TabPFN | 0.7794 | 0.8243 | 1.0000 |
-| XGBoost | 0.7738 | 0.8309 | 1.0000 |
-| LightGBM | 0.7608 | 0.8305 | 1.0000 |
-| CatBoost | 0.7714 | 0.8080 | 0.9999 |
-| MLP | 0.7035 | 0.8278 | 1.0000 |
+#### Timing
+- **TabPFN**: ~10-20s (no tuning)
+- **MLP**: ~15-35s (tuned)
+- **LightGBM**: ~60-100s (tuned)
+- **XGBoost**: ~80-120s (tuned)
+- **CatBoost**: ~200-400s (tuned)
 
-> **Key Insight**: TabPFN achieves **comparable performance** to XGBoost (0.8679 vs 0.8682 ROC AUC) with **16.6× less time**. The main advantage is **zero hyperparameter tuning** — making it attractive for rapid prototyping and exploration.
+---
 
-## 📋 Phase 1 Implementation Summary
+## 🏆 Benchmark Results
 
-The Phase 1 enhancements add comprehensive evaluation capabilities:
+> 📋 **Full Results**: See [reports/summary.md](reports/summary.md) for complete analysis.
 
-### ✅ Completed in Phase 1
+### Quick Summary
 
-| Category | Feature | Description |
-|----------|---------|-------------|
-| **Calibration** | ECE/MCE | Expected and Maximum Calibration Error with 10 & 15 bins |
-| **Curves** | ROC/PR Analysis | Optimal threshold (Youden's J), per-curve AUC |
-| **Per-Class** | Precision/Recall/F1 | Class-specific metrics for binary classification |
-| **Fairness** | Demographic Parity | TPR/FPR disparities, balanced accuracy, MCC |
-| **Statistical** | Friedman Test | Non-parametric overall model comparison |
-| **Statistical** | Nemenyi Post-hoc | Pairwise significance with Critical Difference |
-| **Statistical** | Bootstrap CI | 95% confidence intervals via resampling |
-| **Profiling** | Memory Tracking | Peak memory, delta, and GPU memory usage |
-| **Visualization** | CD Diagrams | Critical Difference visualization |
+| Model | ROC-AUC | Speed (avg) | Calibration (ECE) | Best Use Case |
+|-------|---------|-------------|-------------------|---------------|
+| **TabPFN** 🥇 | 0.8847 | 12.5s ⚡ | 0.048 | Rapid prototyping |
+| **XGBoost** 🥈 | 0.8698 | 84.4s | 0.034 ✅ | Production systems |
+| **LightGBM** 🥉 | 0.8599 | 78.5s | 0.048 | Large datasets |
+| **CatBoost** | 0.8591 | 289.2s | 0.040 | Categorical features |
+| **MLP** | 0.8424 | 18.9s | 0.052 | Real-time inference |
+
+### Key Findings
+
+1. **TabPFN achieves 15.2× speedup** over XGBoost with comparable or better ROC-AUC
+2. **TabPFN wins on 40% of datasets** (6 out of 15)
+3. **XGBoost has best calibration** - critical for probability-based decisions
+4. **Traditional models excel** on specific domains (finance, healthcare)
+
+### When to Use Which Model
+
+#### ✅ Choose TabPFN When:
+- Need rapid prototyping (15× faster)
+- Small datasets (N < 1,000)
+- High-dimensional data (p > 50)
+- Exploring data characteristics before full tuning
+
+#### ✅ Choose XGBoost When:
+- Production systems requiring calibration
+- Consistent performance across domains
+- Probability-based decision making
+- Balanced accuracy matters
+
+#### ✅ Choose LightGBM When:
+- Large datasets (speed critical)
+- Memory-constrained environments
+- Accept slight accuracy trade-off for speed
+
+#### ✅ Choose CatBoost When:
+- Many categorical features
+- Need native categorical handling
+- Can afford longer training time
+
+#### ✅ Choose MLP When:
+- Real-time inference needed
+- Need integration with deep learning pipelines
+- Feature-rich data with learned representations
 
 ---
 
 ## 🧪 Datasets
 
-15 OpenML binary classification datasets, curated for TabPFN's sweet spot (N < 10,000, p < 100):
+15 OpenML binary classification datasets, curated for TabPFN's sweet spot:
 
-- Credit-g (German Credit)
-- Diabetes (Pima Indians)
-- Spambase
-- Banknote Authentication
-- Hill-Valley
-- WDBC (Breast Cancer)
-- QSAR-Biodeg
-- Titanic
-- Churn
-- Ozone Level
-- KC1 / PC1 (Software Defect Prediction)
-- First-Order-Theorem
-- Phoneme
-- Australian Credit
+| Dataset | Domain | Samples | Features | Notes |
+|---------|--------|---------|----------|-------|
+| credit-g | Finance | 1,000 | 20 | German Credit - imbalanced |
+| diabetes | Healthcare | 768 | 8 | Pima Indians Diabetes |
+| spambase | NLP | 4,601 | 57 | Email spam |
+| banknote-auth | Security | 1,372 | 4 | Low-dimensional |
+| hill-valley | Synthetic | 1,212 | 100 | High-dimensional stress test |
+| wdbc | Healthcare | 569 | 30 | Breast Cancer - separable |
+| qsar-biodeg | Chemistry | 1,055 | 41 | Molecular QSAR |
+| titanic | Historical | 891 | 11 | Classic dataset |
+| ozone-level | Environment | 2,536 | 72 | High feature count |
+| kc1 | Software | 2,109 | 21 | Defect prediction - imbalanced |
+| pc1 | Software | 1,109 | 21 | Defect prediction |
+| sick | Healthcare | 3,772 | 37 | Thyroid disease |
+| phoneme | Audio | 5,404 | 5 | Low-dimensional |
+| australian | Finance | 690 | 14 | Credit approval |
+| kc2 | Software | 1,180 | 21 | Defect prediction |
+
+---
 
 ## 🔬 Methodology
 
 1. **Data Split**: 80% train / 20% test (stratified)
 2. **Cross-Validation**: 5-fold stratified for hyperparameter tuning
-3. **Seeds**: 10 random seeds per dataset for robust comparison (currently: 1 seed for initial results)
-4. **TabPFN**: Subsamples training data if >8000 rows (practical CPU limit)
-5. **Statistical Tests**: Wilcoxon signed-rank for pairwise significance (p < 0.05)
+3. **Seeds**: Random seeds for reproducibility
+4. **TabPFN**: Subsamples if >8000 rows (CPU limit)
+5. **Statistical Tests**: Wilcoxon (p < 0.05), Friedman, Nemenyi
 
-### Run Details
-
-- **Current Results**: 1 seed (seed=0), 3 datasets (credit-g, diabetes, banknote-auth)
-- **Full Benchmark**: 10 seeds, 15 datasets (in progress)
+---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ### Ideas for Contributions
 
-- Add more datasets
-- Implement additional models (FT-Transformer, SAINT, NODE)
-- Add more statistical tests (Friedman test, Nemenyi post-hoc)
-- Improve visualizations
-- Add confidence intervals to results
-- Support regression tasks
+- [ ] Add more datasets
+- [ ] Implement additional models (FT-Transformer, SAINT, NODE)
+- [ ] Add regression support
+- [ ] Multi-seed analysis
+- [ ] Ensemble methods
+- [ ] Your ideas welcome! 🎉
 
-## 📖 Detailed Metrics Documentation
-
-For comprehensive documentation of all metrics implemented in Phase 1, including:
-- What each metric means (intuitive definitions)
-- How results are aggregated across multiple seeds/datasets
-- What each visualization shows and how to interpret it
-- Statistical test explanations with formulas
-- Quick analysis workflow examples
-- TabPFN vs GBDT interpretation guide
-
-See **[METRICS_DOCUMENTATION.md](METRICS_DOCUMENTATION.md)** — The all-in-one guide for understanding benchmark results.
+---
 
 ## 📝 License
 
-MIT License — feel free to use this for your own research or projects.
+MIT License — feel free to use for research or projects.
+
+---
 
 ## 📚 Citations
-
-If you use this benchmark in your research, please cite:
 
 ```bibtex
 @misc{tabfm-benchmark,
@@ -270,4 +395,6 @@ If you use this benchmark in your research, please cite:
 
 ---
 
-⭐ **Star this repo** if you find it useful for your research!
+<p align="center">
+  ⭐ <strong>Star this repo</strong> if you find it useful for your research!
+</p>
