@@ -70,7 +70,7 @@ def plot_reliability_diagram(
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches="tight", facecolor=DARK_BG)
     plt.close()
-    print(f"  Saved reliability diagram → {save_path}")
+    print(f"  Saved reliability diagram -> {save_path}")
 
 
 def plot_roc_curves(
@@ -114,7 +114,7 @@ def plot_roc_curves(
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches="tight", facecolor=DARK_BG)
     plt.close()
-    print(f"  Saved ROC curves → {save_path}")
+    print(f"  Saved ROC curves -> {save_path}")
 
 
 def plot_pr_curves(
@@ -159,7 +159,7 @@ def plot_pr_curves(
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches="tight", facecolor=DARK_BG)
     plt.close()
-    print(f"  Saved PR curves → {save_path}")
+    print(f"  Saved PR curves -> {save_path}")
 
 
 def plot_calibration_comparison(
@@ -199,4 +199,4 @@ def plot_calibration_comparison(
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches="tight", facecolor=DARK_BG)
     plt.close()
-    print(f"  Saved calibration comparison → {save_path}")
+    print(f"  Saved calibration comparison -> {save_path}")

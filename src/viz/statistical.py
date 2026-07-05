@@ -107,7 +107,7 @@ def plot_critical_difference_diagram(
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches="tight", facecolor=DARK_BG)
     plt.close()
-    print(f"  Saved CD diagram → {save_path}")
+    print(f"  Saved CD diagram -> {save_path}")
 
 
 def plot_confidence_intervals(
@@ -150,7 +150,7 @@ def plot_confidence_intervals(
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches="tight", facecolor=DARK_BG)
     plt.close()
-    print(f"  Saved CI plot → {save_path}")
+    print(f"  Saved CI plot -> {save_path}")
 
 
 def plot_statistical_significance_heatmap(
@@ -211,7 +211,7 @@ def plot_statistical_significance_heatmap(
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches="tight", facecolor=DARK_BG)
     plt.close()
-    print(f"  Saved significance heatmap → {save_path}")
+    print(f"  Saved significance heatmap -> {save_path}")
 
 
 def plot_win_loss_matrix(
@@ -274,4 +274,4 @@ def plot_win_loss_matrix(
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches="tight", facecolor=DARK_BG)
     plt.close()
-    print(f"  Saved win/loss matrix → {save_path}")
+    print(f"  Saved win/loss matrix -> {save_path}")

@@ -122,7 +122,24 @@ class ModelWrapper(ABC):
             tuning_time = getattr(self, "tuning_time_sec_", 0.0)
             total_wall  = tuning_time + fit_time + predict_time
 
-            y_pred = (y_proba >= 0.5).astype(int)
+            # Handle multi-class predictions properly
+            # Detect if y_proba is 2D with multiple columns (multi-class)
+            n_classes_train = len(np.unique(y_train))
+            is_multiclass = n_classes_train > 2
+
+            if y_proba.ndim == 2 and y_proba.shape[1] > 1:
+                # Multi-class: use argmax to get predictions
+                y_pred = np.argmax(y_proba, axis=1)
+            elif is_multiclass and y_proba.ndim == 1:
+                # Model returned 1D probabilities for multi-class problem
+                # This can happen if model doesn't support proper multi-class
+                # In this case, we treat highest probability class as prediction
+                # But this is a fallback - metrics may not be meaningful
+                y_pred = y_proba.astype(int)  # Use proba as class indices if they're class predictions
+            else:
+                # Binary classification: use threshold of 0.5
+                y_proba_1d = y_proba.ravel() if y_proba.ndim > 1 else y_proba
+                y_pred = (y_proba_1d >= 0.5).astype(int)
 
             return RunResult(
                 model_name=self.name,

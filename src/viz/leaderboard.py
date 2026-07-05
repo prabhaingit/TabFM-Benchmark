@@ -100,7 +100,7 @@ def plot_auc_heatmap(
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches="tight", facecolor=DARK_BG)
     plt.close()
-    print(f"  Saved heatmap → {save_path}")
+    print(f"  Saved heatmap -> {save_path}")
 
 
 def plot_average_ranks(
@@ -133,7 +133,7 @@ def plot_average_ranks(
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches="tight", facecolor=DARK_BG)
     plt.close()
-    print(f"  Saved rank chart → {save_path}")
+    print(f"  Saved rank chart -> {save_path}")
 
 def plot_timing_comparison(
     results_df: pd.DataFrame,
@@ -187,7 +187,7 @@ def plot_timing_comparison(
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches="tight", facecolor=DARK_BG)
     plt.close()
-    print(f"  Saved timing chart → {save_path}")
+    print(f"  Saved timing chart -> {save_path}")
 
 
 def plot_memory_comparison(
@@ -245,4 +245,4 @@ def plot_memory_comparison(
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches="tight", facecolor=DARK_BG)
     plt.close()
-    print(f"  Saved memory chart → {save_path}")
+    print(f"  Saved memory chart -> {save_path}")

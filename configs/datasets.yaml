@@ -75,15 +75,6 @@ datasets:
     domain: historical
     notes: "Classic narrative dataset — very small N"
 
-  - id: 4538
-    name: churn
-    task: binary
-    target: class
-    n_rows: 5000
-    n_features: 20
-    domain: telecom
-    notes: "Telecom churn — realistic business imbalance"
-
   - id: 1487
     name: ozone-level
     task: binary
@@ -111,14 +102,14 @@ datasets:
     domain: software
     notes: "Same domain as kc1 — cross-dataset consistency test"
 
-  - id: 1475
-    name: first-order-theorem
+  - id: 1050
+    name: sick
     task: binary
     target: class
-    n_rows: 6118
-    n_features: 51
-    domain: logic
-    notes: "Unusual domain — tests prior generality"
+    n_rows: 3772
+    n_features: 37
+    domain: healthcare
+    notes: "Thyroid disease detection — binary medical diagnosis"
 
   - id: 1489
     name: phoneme
@@ -137,3 +128,12 @@ datasets:
     n_features: 14
     domain: finance
     notes: "Australian credit approval — tiny N, standard benchmark"
+
+  - id: 1063
+    name: kc2
+    task: binary
+    target: defects
+    n_rows: 1180
+    n_features: 21
+    domain: software
+    notes: "Software defect prediction — similar to kc1/pc1"

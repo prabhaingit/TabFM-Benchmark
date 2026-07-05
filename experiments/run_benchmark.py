@@ -136,9 +136,8 @@ def build_models(exp_cfg: dict, seed: int) -> list:
                         random_state=seed),
         MLPWrapper(n_trials=exp_cfg.get("n_optuna_trials", 30),
                    random_state=seed),
-        # TabFM - Google's zero-shot tabular foundation model
-        # Requires Python >= 3.11
-        TabFMJAXWrapper(random_state=seed),
+        # TabFM - EXCLUDED: not working yet, will add back later
+        # TabFMJAXWrapper(random_state=seed),
     ]
 
 
@@ -197,6 +196,64 @@ def run_single(dataset_cfg: dict, exp_cfg: dict, run_id: str = None) -> list[dic
     return all_metrics
 
 
+def _generate_reports(results_df: pd.DataFrame):
+    """
+    Generate reports and visualisations from results.
+    Called incrementally after each dataset completes.
+    """
+    if results_df.empty:
+        return
+
+    n_datasets = results_df["dataset"].nunique()
+    print(f"  -> Generating reports for {n_datasets} datasets...")
+
+    # Basic rankings
+    try:
+        rank_df = average_rank_table(results_df, metric="roc_auc")
+    except Exception as e:
+        print(f"  Warning: Could not generate rank table: {e}")
+        return
+
+    # Visualisations - AUC heatmap
+    try:
+        plot_auc_heatmap(results_df, save_path="reports/figures/auc_heatmap.png")
+    except Exception as e:
+        print(f"  Warning: Could not generate AUC heatmap: {e}")
+
+    # Average ranks
+    try:
+        plot_average_ranks(rank_df, save_path="reports/figures/average_ranks.png")
+    except Exception as e:
+        print(f"  Warning: Could not generate average ranks plot: {e}")
+
+    # Timing comparison
+    try:
+        plot_timing_comparison(results_df, save_path="reports/figures/timing_comparison.png")
+    except Exception as e:
+        print(f"  Warning: Could not generate timing comparison: {e}")
+
+    # Memory comparison
+    try:
+        plot_memory_comparison(results_df, save_path="reports/figures/memory_comparison.png")
+    except Exception as e:
+        print(f"  Warning: Could not generate memory comparison: {e}")
+
+    # Win/Loss matrix
+    try:
+        plot_win_loss_matrix(results_df, metric="roc_auc", save_path="reports/figures/win_loss_matrix.png")
+    except Exception as e:
+        print(f"  Warning: Could not generate win/loss matrix: {e}")
+
+    # Calibration comparison (if ECE available)
+    if "ece_10" in results_df.columns:
+        try:
+            plot_calibration_comparison(results_df, save_path="reports/figures/calibration_comparison.png")
+        except Exception as e:
+            print(f"  Warning: Could not generate calibration comparison: {e}")
+
+    print(f"  -> Reports updated successfully")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run TabFM benchmark")
     parser.add_argument("--all", action="store_true")
@@ -247,6 +304,9 @@ def main():
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     new_datasets_run = []
 
+    # Track cumulative results for incremental updates
+    cumulative_df = existing_df.copy() if not existing_df.empty else pd.DataFrame()
+
     for dataset_cfg in dataset_cfgs:
         print(f"\n{'='*60}")
         print(f"Dataset: {dataset_cfg['name']} (OpenML {dataset_cfg['id']})")
@@ -261,35 +321,70 @@ def main():
         with open(raw_path, "w") as f:
             json.dump(metrics_list, f, indent=2, default=str)
 
-    # Merge with existing results
-    if all_results:
+        # INCREMENTAL: Update aggregated results after each dataset
+        if metrics_list:
+            new_df = pd.DataFrame(metrics_list)
+
+            if not cumulative_df.empty:
+                # Merge: append new results to existing ones
+                # Check for duplicates (same model, dataset, seed) and keep only new ones
+                existing_keys = set(zip(
+                    cumulative_df['model'],
+                    cumulative_df['dataset'],
+                    cumulative_df['seed']
+                ))
+
+                # Filter new results to exclude any that already exist
+                new_unique = new_df[
+                    ~new_df.apply(lambda row: (row['model'], row['dataset'], row['seed']) in existing_keys, axis=1)
+                ]
+
+                if len(new_unique) > 0:
+                    results_df = pd.concat([cumulative_df, new_unique], ignore_index=True)
+                else:
+                    results_df = cumulative_df
+            else:
+                results_df = new_df
+
+            # Update cumulative_df for next iteration
+            cumulative_df = results_df.copy()
+
+            # Save aggregated results after each dataset
+            agg_path = "experiments/results/aggregated/results.csv"
+            results_df.to_csv(agg_path, index=False)
+            print(f"  -> Updated aggregated results: {len(results_df)} total results")
+
+            # INCREMENTAL: Generate reports after each dataset
+            _generate_reports(results_df)
+
+    # Final merge for any remaining results
+    if all_results and not dataset_cfgs:
+        # This handles the case where no new datasets were run but existing_df exists
         new_df = pd.DataFrame(all_results)
 
         if not existing_df.empty:
-            # Merge: append new results to existing ones
-            # Check for duplicates (same model, dataset, seed) and keep only new ones
             existing_keys = set(zip(
                 existing_df['model'],
                 existing_df['dataset'],
                 existing_df['seed']
             ))
 
-            # Filter new results to exclude any that already exist
             new_unique = new_df[
                 ~new_df.apply(lambda row: (row['model'], row['dataset'], row['seed']) in existing_keys, axis=1)
             ]
 
             if len(new_unique) > 0:
                 results_df = pd.concat([existing_df, new_unique], ignore_index=True)
-                print(f"\nMerged: {len(existing_df)} existing + {len(new_unique)} new = {len(results_df)} total results")
             else:
                 results_df = existing_df
-                print("\nAll new results already exist in aggregated file. No merging needed.")
         else:
             results_df = new_df
-    else:
-        # No new results, use existing
+    elif not all_results and not dataset_cfgs:
+        # Use existing results
         results_df = existing_df
+    else:
+        # Already handled in the loop above
+        results_df = load_existing_aggregated_results()
 
     if results_df.empty:
         print("No results available. Check your dataset configs.")

@@ -91,13 +91,14 @@ class TabFMClassifierWrapper(ModelWrapper):
 
     def predict_proba(self, X_test: np.ndarray) -> np.ndarray:
         """
-        Predict probability of positive class.
+        Predict probabilities for all classes.
 
         Args:
             X_test: Test features, shape (n_samples, n_features)
 
         Returns:
-            Probabilities for positive class, shape (n_samples,)
+            For binary: probabilities for positive class, shape (n_samples,)
+            For multi-class: probabilities for all classes, shape (n_samples, n_classes)
         """
         if self._classifier is None:
             raise ValueError("Model not fitted. Call fit() first.")
@@ -106,16 +107,19 @@ class TabFMClassifierWrapper(ModelWrapper):
         if isinstance(X_test, np.ndarray):
             X_test = self._numpy_to_dataframe(X_test)
 
-        # Get probabilities
+        # Get probabilities from model
         proba = self._classifier.predict_proba(X_test)
 
-        # Handle binary classification: return probability of class 1
-        if proba.shape[1] == 2:
+        # Handle different output shapes
+        if proba.ndim == 2 and proba.shape[1] > 1:
+            # Multi-class: return full probability matrix
+            return proba
+        elif proba.shape[1] == 2:
+            # Binary classification: return probability of class 1
             return proba[:, 1]
-        elif proba.ndim > 1:
-            # If multiple columns, take the positive class probability
-            return proba[:, 1] if proba.shape[1] > 1 else proba.ravel()
-        return proba.ravel()
+        else:
+            # Fallback: flatten
+            return proba.ravel()
 
     def _load_model(self):
         """Load TabFM model from pretrained weights."""

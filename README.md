@@ -218,7 +218,7 @@ The Phase 1 enhancements add comprehensive evaluation capabilities:
 1. **Data Split**: 80% train / 20% test (stratified)
 2. **Cross-Validation**: 5-fold stratified for hyperparameter tuning
 3. **Seeds**: 10 random seeds per dataset for robust comparison (currently: 1 seed for initial results)
-4. **TabPFN**: Subsamples training data if >3000 rows (practical CPU limit)
+4. **TabPFN**: Subsamples training data if >8000 rows (practical CPU limit)
 5. **Statistical Tests**: Wilcoxon signed-rank for pairwise significance (p < 0.05)
 
 ### Run Details
