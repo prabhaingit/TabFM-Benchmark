@@ -68,6 +68,7 @@ Contributor | [Contributing](#-contributing) | How to add models, datasets, or t
 | Model | Type | Tuning Required | Best For |
 |-------|------|-----------------|----------|
 | **TabPFN** | Tabular Foundation Model | ❌ None (zero-shot) | Rapid prototyping, small datasets |
+| **SAP-RPT-1** | Tabular Foundation Model | ❌ None (zero-shot) | Semantics-rich datasets, fast deployment |
 | **XGBoost** | Gradient Boosted Trees | ✅ Optuna (50 trials) | Production, well-calibrated probabilities |
 | **LightGBM** | Gradient Boosted Trees | ✅ Optuna (50 trials) | Large datasets, speed-critical |
 | **CatBoost** | Gradient Boosted Trees | ✅ Optuna (50 trials) | Categorical features |
@@ -283,16 +284,20 @@ Raw numbers | experiments/results/aggregated/ | `results.csv`
 
 | Model | ROC-AUC | Speed (avg) | Calibration (ECE) | Best Use Case |
 |-------|---------|-------------|-------------------|---------------|
-| **TabPFN** 🥇 | 0.8847 | 12.5s ⚡ | 0.048 | Rapid prototyping |
-| **XGBoost** 🥈 | 0.8698 | 84.4s | 0.034 ✅ | Production systems |
-| **LightGBM** 🥉 | 0.8599 | 78.5s | 0.048 | Large datasets |
-| **CatBoost** | 0.8591 | 289.2s | 0.040 | Categorical features |
-| **MLP** | 0.8424 | 18.9s | 0.052 | Real-time inference |
+| **TabPFN** 🥇 | 0.932 | 5.2s ⚡ | 0.048 | Rapid prototyping |
+| **SAP-RPT-1** 🥈 | 0.891 | 9.4s ⚡ | — | Semantics-rich datasets |
+| **CatBoost** 🥉 | 0.887 | 330.6s | 0.040 | Categorical features |
+| **XGBoost** | 0.888 | 62.5s | 0.034 ✅ | Production systems |
+| **LightGBM** | 0.889 | 213.3s | 0.048 | Large datasets |
+| **MLP** | 0.866 | 33.0s | 0.052 | Real-time inference |
+
+> Results across 15 OpenML datasets, 5 random seeds each. Speed = mean total wall-clock time
+> per dataset-seed (includes Optuna tuning for tree models). SAP-RPT-1 added July 2026.
 
 ### Key Findings
 
-1. **TabPFN achieves 15.2× speedup** over XGBoost with comparable or better ROC-AUC
-2. **TabPFN wins on 40% of datasets** (6 out of 15)
+1. **TabPFN achieves 12.1× speedup** over XGBoost with the highest mean AUC (0.932)
+2. **SAP-RPT-1 ranks #2 zero-shot** — statistically tied with tuned CatBoost, XGBoost, LightGBM (Wilcoxon p > 0.05), 6.7× faster than XGBoost
 3. **XGBoost has best calibration** - critical for probability-based decisions
 4. **Traditional models excel** on specific domains (finance, healthcare)
 
