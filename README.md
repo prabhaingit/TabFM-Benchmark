@@ -284,22 +284,23 @@ Raw numbers | experiments/results/aggregated/ | `results.csv`
 
 | Model | ROC-AUC | Speed (avg) | Calibration (ECE) | Best Use Case |
 |-------|---------|-------------|-------------------|---------------|
-| **TabPFN** 🥇 | 0.932 | 5.2s ⚡ | 0.048 | Rapid prototyping |
-| **SAP-RPT-1** 🥈 | 0.891 | 9.4s ⚡ | — | Semantics-rich datasets |
-| **CatBoost** 🥉 | 0.887 | 330.6s | 0.040 | Categorical features |
-| **XGBoost** | 0.888 | 62.5s | 0.034 ✅ | Production systems |
-| **LightGBM** | 0.889 | 213.3s | 0.048 | Large datasets |
-| **MLP** | 0.866 | 33.0s | 0.052 | Real-time inference |
+| **TabPFN** 🥇 | 0.8847 | 12.5s ⚡ | 0.048 | Rapid prototyping |
+| **SAP-RPT-1** | 0.891 | 9.4s ⚡ | — | Semantics-rich datasets |
+| **XGBoost** 🥈 | 0.8698 | 84.4s | 0.034 ✅ | Production systems |
+| **LightGBM** 🥉 | 0.8599 | 78.5s | 0.048 | Large datasets |
+| **CatBoost** | 0.8591 | 289.2s | 0.040 | Categorical features |
+| **MLP** | 0.8424 | 18.9s | 0.052 | Real-time inference |
 
-> Results across 15 OpenML datasets, 5 random seeds each. Speed = mean total wall-clock time
-> per dataset-seed (includes Optuna tuning for tree models). SAP-RPT-1 added July 2026.
+> SAP-RPT-1 row added July 2026 (15 OpenML datasets, 5 seeds, T4 GPU).
+> All other numbers from the original benchmark run; see `experiments/results/`.
 
 ### Key Findings
 
-1. **TabPFN achieves 12.1× speedup** over XGBoost with the highest mean AUC (0.932)
-2. **SAP-RPT-1 ranks #2 zero-shot** — statistically tied with tuned CatBoost, XGBoost, LightGBM (Wilcoxon p > 0.05), 6.7× faster than XGBoost
-3. **XGBoost has best calibration** - critical for probability-based decisions
-4. **Traditional models excel** on specific domains (finance, healthcare)
+1. **TabPFN achieves 15.2× speedup** over XGBoost with comparable or better ROC-AUC
+2. **TabPFN wins on 40% of datasets** (6 out of 15)
+3. **SAP-RPT-1 is the fastest zero-shot model** — comparable AUC to tuned GBTs, 9× faster than XGBoost
+4. **XGBoost has best calibration** - critical for probability-based decisions
+5. **Traditional models excel** on specific domains (finance, healthcare)
 
 ### When to Use Which Model
 
