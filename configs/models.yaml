@@ -19,6 +19,14 @@ models:
     requires_python: ">=3.11"
     tunable: false          # TabFM is zero-shot, no tuning
 
+  sap_rpt:
+    class: src.models.sap_rpt_model.SAPRptWrapper
+    description: "SAP RPT-1 OSS — zero-shot semantics-aware tabular in-context learner"
+    tunable: false
+    fixed_params:
+      max_context_size: 8192   # reduce to 2048 for lighter GPU memory usage
+      bagging: 1               # bagging>1 has negligible AUC effect on encoded data
+
   xgboost:
     class: src.models.xgboost_model.XGBoostWrapper
     tunable: true
