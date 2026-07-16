@@ -44,7 +44,9 @@ from src.models.xgboost_model import XGBoostWrapper
 from src.models.lightgbm_model import LightGBMWrapper
 from src.models.catboost_model import CatBoostWrapper
 from src.models.mlp_model import MLPWrapper
-from src.models.tabfm_model import TabFMJAXWrapper, TabFMPyTorchWrapper
+# TabFM excluded — not installed; import guarded to avoid startup failure
+# from src.models.tabfm_model import TabFMJAXWrapper, TabFMPyTorchWrapper
+from src.models.sap_rpt_model import SAPRptWrapper
 from src.evaluation.metrics import compute_metrics
 from src.evaluation.statistical import (
     wilcoxon_pairwise,
@@ -127,7 +129,7 @@ def load_existing_aggregated_results() -> pd.DataFrame:
 def build_models(exp_cfg: dict, seed: int) -> list:
     """Instantiate all model wrappers for a given seed."""
     return [
-        TabPFNWrapper(device="cpu", random_state=seed),
+        TabPFNWrapper(device="cuda", random_state=seed),
         XGBoostWrapper(n_trials=exp_cfg.get("n_optuna_trials", 50),
                        random_state=seed),
         LightGBMWrapper(n_trials=exp_cfg.get("n_optuna_trials", 50),
@@ -136,6 +138,7 @@ def build_models(exp_cfg: dict, seed: int) -> list:
                         random_state=seed),
         MLPWrapper(n_trials=exp_cfg.get("n_optuna_trials", 30),
                    random_state=seed),
+        SAPRptWrapper(random_state=seed),
         # TabFM - EXCLUDED: not working yet, will add back later
         # TabFMJAXWrapper(random_state=seed),
     ]

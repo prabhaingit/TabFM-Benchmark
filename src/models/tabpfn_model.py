@@ -9,7 +9,7 @@ Critical design choices:
 """
 
 import numpy as np
-from tabpfn_client import TabPFNClassifier
+from tabpfn import TabPFNClassifier
 from .base import ModelWrapper
 
 
@@ -39,7 +39,8 @@ class TabPFNWrapper(ModelWrapper):
         self.tuning_time_sec_ = 0.0
 
         self._model = TabPFNClassifier(
-            n_estimators=8
+            n_estimators=8,
+            device=self.device,
         )
         self._model.fit(X_train, y_train)
 

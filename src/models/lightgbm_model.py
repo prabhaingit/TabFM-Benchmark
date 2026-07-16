@@ -21,15 +21,15 @@ class LightGBMWrapper(ModelWrapper):
     def fit(self, X_train: np.ndarray, y_train: np.ndarray) -> None:
         def objective(trial):
             params = {
-                "n_estimators": trial.suggest_int("n_estimators", 100, 1000),
-                "max_depth": trial.suggest_int("max_depth", 3, 12),
+                "n_estimators": trial.suggest_int("n_estimators", 100, 500),
+                "max_depth": trial.suggest_int("max_depth", 3, 8),
                 "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
-                "num_leaves": trial.suggest_int("num_leaves", 15, 255),
+                "num_leaves": trial.suggest_int("num_leaves", 15, 63),
                 "subsample": trial.suggest_float("subsample", 0.6, 1.0),
                 "colsample_bytree": trial.suggest_float("colsample_bytree", 0.6, 1.0),
                 "min_child_samples": trial.suggest_int("min_child_samples", 5, 50),
                 "random_state": self.random_state,
-                "n_jobs": -1,
+                "n_jobs": 1,
                 "verbose": -1,
             }
             clf = lgb.LGBMClassifier(**params)
@@ -45,7 +45,9 @@ class LightGBMWrapper(ModelWrapper):
             direction="maximize",
             sampler=optuna.samplers.TPESampler(seed=self.random_state),
         )
-        study.optimize(objective, n_trials=self.n_trials, timeout=self.timeout, n_jobs=-1)
+        # n_jobs=1 so trials run sequentially and timeout is respected.
+        # Parallel trials ignore the timeout until all running trials finish.
+        study.optimize(objective, n_trials=self.n_trials, timeout=self.timeout, n_jobs=1)
         self.tuning_time_sec_ = time.perf_counter() - t_tune_start
         self.best_params_ = study.best_params
 

@@ -35,8 +35,8 @@ class XGBoostWrapper(ModelWrapper):
     def fit(self, X_train: np.ndarray, y_train: np.ndarray) -> None:
         def objective(trial):
             params = {
-                "n_estimators": trial.suggest_int("n_estimators", 100, 1000),
-                "max_depth": trial.suggest_int("max_depth", 3, 10),
+                "n_estimators": trial.suggest_int("n_estimators", 100, 500),
+                "max_depth": trial.suggest_int("max_depth", 3, 8),
                 "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
                 "subsample": trial.suggest_float("subsample", 0.6, 1.0),
                 "colsample_bytree": trial.suggest_float("colsample_bytree", 0.6, 1.0),
@@ -45,7 +45,7 @@ class XGBoostWrapper(ModelWrapper):
                 "reg_lambda": trial.suggest_float("reg_lambda", 0.5, 2.0),
                 "eval_metric": "logloss",
                 "random_state": self.random_state,
-                "n_jobs": -1,
+                "n_jobs": 1,
             }
             clf = xgb.XGBClassifier(**params)
             cv = StratifiedKFold(n_splits=self.n_cv_folds, shuffle=True,
@@ -60,7 +60,7 @@ class XGBoostWrapper(ModelWrapper):
             direction="maximize",
             sampler=optuna.samplers.TPESampler(seed=self.random_state),
         )
-        study.optimize(objective, n_trials=self.n_trials, timeout=self.timeout, n_jobs=-1)
+        study.optimize(objective, n_trials=self.n_trials, timeout=self.timeout, n_jobs=1)
         self.tuning_time_sec_ = time.perf_counter() - t_tune_start
 
         self.best_params_ = study.best_params

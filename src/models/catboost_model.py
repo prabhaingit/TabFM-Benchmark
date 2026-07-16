@@ -21,19 +21,20 @@ class CatBoostWrapper(ModelWrapper):
     def fit(self, X_train: np.ndarray, y_train: np.ndarray) -> None:
         def objective(trial):
             params = {
-                "iterations": trial.suggest_int("iterations", 100, 1000),
-                "depth": trial.suggest_int("depth", 4, 10),
+                "iterations": trial.suggest_int("iterations", 100, 500),
+                "depth": trial.suggest_int("depth", 4, 8),
                 "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
                 "l2_leaf_reg": trial.suggest_float("l2_leaf_reg", 1, 10),
-                "border_count": trial.suggest_int("border_count", 32, 255),
+                "border_count": trial.suggest_int("border_count", 32, 128),
                 "random_seed": self.random_state,
+                "task_type": "GPU",
                 "verbose": 0,
             }
             clf = CatBoostClassifier(**params)
             cv = StratifiedKFold(n_splits=self.n_cv_folds, shuffle=True,
                                  random_state=self.random_state)
             scores = cross_val_score(clf, X_train, y_train,
-                                     cv=cv, scoring="roc_auc", n_jobs=-1)
+                                     cv=cv, scoring="roc_auc", n_jobs=1)
             return scores.mean()
         
         t_tune_start = time.perf_counter()
@@ -42,13 +43,14 @@ class CatBoostWrapper(ModelWrapper):
             direction="maximize",
             sampler=optuna.samplers.TPESampler(seed=self.random_state),
         )
-        study.optimize(objective, n_trials=self.n_trials, timeout=self.timeout, n_jobs=-1)
+        study.optimize(objective, n_trials=self.n_trials, timeout=self.timeout, n_jobs=1)
         self.tuning_time_sec_ = time.perf_counter() - t_tune_start
         self.best_params_ = study.best_params
 
         self._model = CatBoostClassifier(
             **self.best_params_,
             random_seed=self.random_state,
+            task_type="GPU",
             verbose=0,
         )
         self._model.fit(X_train, y_train)

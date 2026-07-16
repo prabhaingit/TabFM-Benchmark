@@ -3,7 +3,7 @@ models:
   tabpfn:
     class: src.models.tabpfn_model.TabPFNWrapper
     fixed_params:
-      device: "cpu"         # change to "cuda" if available
+      device: "cuda"
       N_ensemble_configurations: 8  # TabPFN v2 default
     tunable: false          # key point: TabPFN is zero-shot, no tuning
 
@@ -53,9 +53,17 @@ models:
     search_space:
       iterations: [100, 500]
       depth: [4, 8]
-      learning_rate: [0.05, 0.2]
-      l2_leaf_reg: [1, 5]
-      border_count: [64, 128]
+      learning_rate: [0.01, 0.3]
+      l2_leaf_reg: [1, 10]
+      border_count: [32, 128]
+
+  sap_rpt:
+    class: src.models.sap_rpt_model.SAPRptWrapper
+    description: "SAP RPT-1 OSS — zero-shot semantics-aware tabular in-context learner"
+    tunable: false
+    fixed_params:
+      max_context_size: 8192   # reduce to 2048 for lighter memory usage
+      bagging: 1               # bagging>1 averages away signal on encoded data
 
   mlp_sklearn:
     class: src.models.mlp_model.MLPWrapper
